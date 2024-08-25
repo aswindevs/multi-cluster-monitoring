@@ -3,10 +3,11 @@ testFramework:
   enabled: false
 persistence:
   enabled: false
-adminPassword: prom-operator
+
 serviceAccount:
   create: true
   name: grafana
+
 resources:
   requests:
     cpu: 500m
