@@ -1,0 +1,185 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Container
+    folder: K8S
+    interval: 1m
+    rules:
+      - uid: qczvZ9UVz
+        title: ContainerHighCpu
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: d3ccf2e1-d9f5-4838-a36c-8cc583faa6b7
+            model:
+              datasource:
+                type: victoriametrics-datasource
+                uid: d3ccf2e1-d9f5-4838-a36c-8cc583faa6b7
+              editorMode: code
+              expr: (sum(rate(container_cpu_usage_seconds_total{container!="POD", cpu="total", image!=""}[5m])) by (pod, container ,cluster) * 100 / sum(kube_pod_container_resource_limits{resource="cpu", container!=""}) by (pod, container,cluster))
+              hide: false
+              legendFormat: __auto
+              range: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: OK
+        for: 5m
+        annotations:
+          description: CPU load on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}.
+          runbook_url: ""
+          summary: Container High CPU
+        labels:
+          "": ""
+          severity: critical
+        isPaused: false
+      - uid: a471mr8Vz
+        title: ContainerHighMemory
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: d3ccf2e1-d9f5-4838-a36c-8cc583faa6b7
+            model:
+              datasource:
+                type: victoriametrics-datasource
+                uid: d3ccf2e1-d9f5-4838-a36c-8cc583faa6b7
+              editorMode: code
+              expr: (sum(container_memory_working_set_bytes{container!="POD", container!="", image!=""}) by (pod, container, namespace,cluster) * 100 / sum(kube_pod_container_resource_limits{resource="memory"}) by (pod, container,namespace,cluster) )
+              hide: false
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: true
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              hide: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              hide: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: k8s_views_pods
+        panelId: 30
+        noDataState: OK
+        execErrState: OK
+        for: 5m
+        annotations:
+          __dashboardUid__: k8s_views_pods
+          __panelId__: "30"
+          description: Memory load on pod {{ $labels.pod }} in namespace {{ $labels.namespace }}.
+          summary: '"Container High Memory"'
+        labels:
+          severity: critical
+        isPaused: false

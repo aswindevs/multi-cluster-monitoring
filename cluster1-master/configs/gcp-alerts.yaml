@@ -1,0 +1,614 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: GCP
+    folder: GCP
+    interval: 1m
+    rules:
+      - uid: ea1e99ce-e032-4bd3-9ed6-44270ba9d6ae
+        title: "CloudSQL Uptime "
+        condition: C
+        data:
+          - refId: A
+            queryType: timeSeriesList
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+            model:
+              aliasBy: "{{ resource.label.database_id }}"
+              datasource:
+                type: stackdriver
+                uid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+              intervalMs: 1000
+              maxDataPoints: 43200
+              queryType: timeSeriesList
+              refId: A
+              timeSeriesList:
+                alignmentPeriod: cloud-monitoring-auto
+                crossSeriesReducer: REDUCE_MEAN
+                filters:
+                  - metric.type
+                  - =
+                  - cloudsql.googleapis.com/database/up
+                groupBys:
+                  - resource.label.database_id
+                perSeriesAligner: ALIGN_MEAN
+                preprocessor: none
+                projectName: myorg
+                view: FULL
+          - refId: B
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: cqNIcBkVk
+        panelId: 8
+        noDataState: OK
+        execErrState: Error
+        for: 3m
+        annotations:
+          __dashboardUid__: cqNIcBkVk
+          __panelId__: "8"
+          description: CloudSQL  {{ index $labels "resource.label.database_id" }}  is down for last 3 min
+          summary: CloudSQL Down
+        labels:
+          severity: critical
+        isPaused: false
+      - uid: b245eeb5-92ec-4570-86cc-8f1f020d122c
+        title: CloudSQL Memory Utilization
+        condition: C
+        data:
+          - refId: A
+            queryType: timeSeriesList
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+            model:
+              aliasBy: "{{ resource.label.database_id }}"
+              datasource:
+                type: stackdriver
+                uid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+              intervalMs: 1000
+              maxDataPoints: 43200
+              queryType: timeSeriesList
+              refId: A
+              timeSeriesList:
+                alignmentPeriod: cloud-monitoring-auto
+                crossSeriesReducer: REDUCE_NONE
+                filters:
+                  - metric.type
+                  - =
+                  - cloudsql.googleapis.com/database/memory/utilization
+                groupBys:
+                  - resource.label.database_id
+                perSeriesAligner: ALIGN_MEAN
+                preprocessor: none
+                projectName: myorg
+                view: FULL
+          - refId: B
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0.85
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: cqNIcBkVk
+        panelId: 2
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          __dashboardUid__: cqNIcBkVk
+          __panelId__: "2"
+          description: CloudSQL - {{ index $labels "resource.label.database_id" }} memory usage is above 85%
+          summary: CloudSQL High Memory
+        labels:
+          severity: critical
+        isPaused: false
+      - uid: a7c23b83-f2f6-4d92-8afe-9120bada1641
+        title: CloudSQL CPU Utilization
+        condition: C
+        data:
+          - refId: A
+            queryType: timeSeriesList
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+            model:
+              aliasBy: "{{ resource.label.database_id }}"
+              datasource:
+                type: stackdriver
+                uid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+              intervalMs: 1000
+              maxDataPoints: 43200
+              queryType: timeSeriesList
+              refId: A
+              timeSeriesList:
+                alignmentPeriod: cloud-monitoring-auto
+                crossSeriesReducer: REDUCE_NONE
+                filters:
+                  - metric.type
+                  - =
+                  - cloudsql.googleapis.com/database/cpu/utilization
+                groupBys: []
+                perSeriesAligner: ALIGN_MAX
+                preprocessor: none
+                projectName: myorg
+                view: FULL
+          - refId: B
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0.75
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: cqNIcBkVk
+        panelId: 4
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          __dashboardUid__: cqNIcBkVk
+          __panelId__: "4"
+          description: CloudSQL - {{ index $labels "resource.label.database_id" }}  CPU is above 75%
+          summary: CloudSQL High CPU
+        labels:
+          severity: critical
+        isPaused: false
+      - uid: a6c54e50-08cd-4c72-a06e-fa3c7d0c7710
+        title: CloudSQL Disk Utilization
+        condition: C
+        data:
+          - refId: A
+            queryType: timeSeriesList
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+            model:
+              aliasBy: "{{ resource.label.database_id }}"
+              datasource:
+                type: stackdriver
+                uid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+              intervalMs: 1000
+              maxDataPoints: 43200
+              queryType: timeSeriesList
+              refId: A
+              timeSeriesList:
+                alignmentPeriod: cloud-monitoring-auto
+                crossSeriesReducer: REDUCE_MEAN
+                filters:
+                  - metric.type
+                  - =
+                  - cloudsql.googleapis.com/database/disk/utilization
+                groupBys:
+                  - resource.label.database_id
+                perSeriesAligner: ALIGN_MEAN
+                preprocessor: none
+                projectName: myorg
+                view: FULL
+          - refId: B
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 10800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0.85
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: cqNIcBkVk
+        panelId: 10
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          __dashboardUid__: cqNIcBkVk
+          __panelId__: "10"
+          description: CloudSQL - {{ index $labels "resource.label.database_id" }}  disk used 85% and above
+          summary: CloudSQL Low Disk Space
+        labels:
+          severity: critical
+        isPaused: false
+      - uid: e43542df-9c72-4c12-97f2-389d834c9697
+        title: Redis Uptime
+        condition: C
+        data:
+          - refId: A
+            queryType: timeSeriesList
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+            model:
+              aliasBy: "{{resource.label.instance_id}}-{{metric.label.role}}"
+              datasource:
+                type: stackdriver
+                uid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+              intervalMs: 1000
+              maxDataPoints: 43200
+              queryType: timeSeriesList
+              refId: A
+              timeSeriesList:
+                alignmentPeriod: cloud-monitoring-auto
+                crossSeriesReducer: REDUCE_COUNT
+                filters:
+                  - metric.type
+                  - =
+                  - redis.googleapis.com/server/uptime
+                groupBys:
+                  - metric.label.role
+                  - resource.label.instance_id
+                perSeriesAligner: ALIGN_COUNT
+                preprocessor: none
+                projectName: myorg
+                view: FULL
+          - refId: B
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: 0psSFl5Vk
+        panelId: 3
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          __dashboardUid__: 0psSFl5Vk
+          __panelId__: "3"
+          description: Redis Down {{ index $labels "resource.label.instance_id" }} is down for last 5m
+          summary: Redis Down
+        labels:
+          severity: critical
+        isPaused: false
+      - uid: f3f287ff-87b6-4cdf-b752-03c6e4a9a0fc
+        title: Redis Memory Usage
+        condition: C
+        data:
+          - refId: A
+            queryType: timeSeriesList
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+            model:
+              aliasBy: "{{resource.label.instance_id}}-{{metric.label.role}}"
+              datasource:
+                type: stackdriver
+                uid: e1981a2c-80b7-4d0c-a1a4-c9c7466befd7
+              intervalMs: 1000
+              maxDataPoints: 43200
+              queryType: timeSeriesList
+              refId: A
+              timeSeriesList:
+                alignmentPeriod: cloud-monitoring-auto
+                crossSeriesReducer: REDUCE_MEAN
+                filters:
+                  - metric.type
+                  - =
+                  - redis.googleapis.com/stats/memory/system_memory_usage_ratio
+                groupBys:
+                  - metric.label.role
+                  - resource.label.instance_id
+                perSeriesAligner: ALIGN_MEAN
+                preprocessor: none
+                projectName: myorg
+                view: FULL
+          - refId: B
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0.8
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: 0psSFl5Vk
+        panelId: 4
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          __dashboardUid__: 0psSFl5Vk
+          __panelId__: "4"
+          description: Redi {{ index $labels "resource.label.instance_id" }}  has high Memory usage
+          summary: Redis High Memory usage
+        labels:
+          severity: critical
+        isPaused: false

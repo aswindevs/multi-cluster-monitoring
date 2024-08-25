@@ -1,0 +1,232 @@
+defaultDashboardsEnabled: false
+testFramework:
+  enabled: false
+persistence:
+  enabled: false
+adminPassword: prom-operator
+serviceAccount:
+  create: true
+  name: grafana
+resources:
+  requests:
+    cpu: 500m
+    memory: 2Gi
+  limits:
+    memory: 2Gi
+replicas: 2
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPU: "80"
+  targetMemory: "80"
+topologySpreadConstraints:
+  - labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: grafana
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana-dashboard
+    defaultFolderName: default
+    searchNamespace:
+        - kubecost
+        - monitoring-v2
+  datasources:
+    enabled: true
+    label: grafana-datasource
+    searchNamespace:
+        - kubecost
+        - monitoring-v2
+  notifiers:
+    enabled: true
+    label: grafana-notifier
+  alerts:
+    enabled: true
+    label: grafana-alert
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Google Cloud Monitoring
+        type: stackdriver
+        access: proxy
+        uid: "e1981a2c-80b7-4d0c-a1a4-c9c7466befd7"
+        jsonData:
+          authenticationType: gce
+      - name: VictoriaMetrics
+        type: victoriametrics-datasource
+        url: http://vmselect-victoria-metrics.monitoring-v2:8481/select/0/prometheus
+        access: proxy
+        uid: "d3ccf2e1-d9f5-4838-a36c-8cc583faa6b7"
+        isDefault: true
+securityContext:
+  fsGroup: 472
+  runAsUser: 472
+  runAsGroup: 472
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: K8S
+        orgId: 1
+        type: file
+        folder: K8S
+        allowUiUpdates: true
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        editable: true
+        options:
+          path: /tmp/dashboards/K8S
+      - name: GCP
+        orgId: 1
+        type: file
+        folder: GCP
+        allowUiUpdates: true
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        editable: true
+        options:
+          path: /tmp/dashboards/GCP
+      - name: NGINX
+        orgId: 1
+        type: file
+        folder: NGINX
+        allowUiUpdates: true
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        editable: true
+        options:
+          path: /tmp/dashboards/NGINX
+      - name: HealthCheck
+        orgId: 1
+        type: file
+        folder: HealthCheck
+        allowUiUpdates: true
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        editable: true
+        options:
+          path: /tmp/dashboards/HealthCheck
+      - name: Db-Jobs
+        orgId: 1
+        type: file
+        folder: Db-Jobs
+        allowUiUpdates: true
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        editable: true
+        options:
+          path: /tmp/dashboards/Db-Jobs
+      - name: ProxySQL
+        orgId: 1
+        type: file
+        folder: ProxySQL
+        allowUiUpdates: true
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        editable: true
+        options:
+          path: /tmp/dashboards/ProxySQL     
+      - name: GPU
+        orgId: 1
+        type: file
+        folder: GPU
+        allowUiUpdates: true
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        editable: true
+        options:
+          path: /tmp/dashboards/GPU  
+
+## HA
+headlessService: true
+
+## Mounts
+extraConfigmapMounts:
+  - name: grafana-contact-point
+    mountPath: /etc/grafana/provisioning/alerting/contact-point.yaml
+    subPath: "contact-point.yaml"
+    items:
+      - key: contact-point.yaml
+        path: contact-point.yaml
+    configMap: grafana-alerting
+    readOnly: false
+  - name: grafana-template
+    mountPath: /etc/grafana/provisioning/alerting/template.yaml
+    subPath: "template.yaml"
+    items:
+      - key: template.yaml
+        path: template.yaml
+    configMap: grafana-alerting
+    readOnly: false
+  - name: grafana-notification-policy
+    mountPath: /etc/grafana/provisioning/alerting/notification-policy.yaml
+    subPath: "notification-policy.yaml"
+    items:
+      - key: notification-policy.yaml
+        path: notification-policy.yaml
+    configMap: grafana-alerting
+    readOnly: false
+
+envFromSecret: grafana-secret
+
+
+grafana.ini:
+  server:
+    root_url: https://grafana.example.com/
+  database:
+    type: mysql
+    url: DATABASE_URL
+    ssl_mode: false
+  unified_alerting:
+    enabled: true
+    ha_listen_address: "${POD_IP}:9094"
+    ha_peers: "grafana-headless:9094"
+    ha_advertise_address: "${POD_IP}:9094"
+    ha_peer_timeout: 15s
+  auth.anonymous:
+    enabled: false
+  auth.google:
+    enabled: true
+    allow_sign_up: true
+    auto_login: false
+    client_id: CLIENT_ID
+    client_secret: ${GF_AUTH_GOOGLE_CLIENT_SECRET}
+    scopes: openid email profile https://www.googleapis.com/auth/cloud-identity.groups.readonly
+    auth_url: https://accounts.google.com/o/oauth2/v2/auth
+    token_url: https://oauth2.googleapis.com/token
+    api_url: https://openidconnect.googleapis.com/v1/userinfo
+    allowed_domains: example.com
+    hosted_domain: example.com
+    use_pkce: true
+    skip_org_role_sync: false
+    role_attribute_path: contains(groups[*], 'devops-team@example.com') && 'Admin' || contains(groups[*], 'eng-all@example.com') && 'Editor' || 'Viewer'
+  plugins:
+    allow_loading_unsigned_plugins: victoriametrics-datasource
+
+extraInitContainers:
+  - name: "load-vm-ds-plugin"
+    image: "curlimages/curl:7.85.0"
+    command: ["/bin/sh"]
+    workingDir: "/var/lib/grafana"
+    securityContext:
+      runAsUser: 472
+      runAsNonRoot: true
+      runAsGroup: 472
+    args:
+      - "-c"
+      - |
+        set -ex
+        mkdir -p /var/lib/grafana/plugins/
+        curl -L https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/v0.8.3/victoriametrics-datasource-v0.8.3.tar.gz -o /var/lib/grafana/plugins/plugin.tar.gz
+        tar -xf /var/lib/grafana/plugins/plugin.tar.gz -C /var/lib/grafana/plugins/
+        rm /var/lib/grafana/plugins/plugin.tar.gz
+    volumeMounts:
+      # For grafana-operator users, change `name: storage` to `name: grafana-data`
+      - name: storage
+        mountPath: /var/lib/grafana

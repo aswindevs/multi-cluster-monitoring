@@ -1,0 +1,98 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: ProxySQL
+    folder: ProxySQL
+    interval: 10s
+    rules:
+      - uid: dsdsd-802c-4a98-a555-e6a472858097
+        title: ProxySQL-Down
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: d3ccf2e1-d9f5-4838-a36c-8cc583faa6b7
+            model:
+              editorMode: code
+              expr: up{service="proxy-sql-svc"}
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              settings:
+                mode: ""
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: CeiGgS5Gk
+        panelId: 27
+        noDataState: OK
+        execErrState: OK
+        for: 2m
+        annotations:
+          __dashboardUid__: CeiGgS5Gk
+          __panelId__: "27"
+          description: "'Service {{ $labels.service }} health check is failing for more than 2m"
+          runbook_url: ""
+          summary: "'Service {{ $labels.service }}  is down'"
+        labels:
+          "": ""
+          severity: critical
+        isPaused: false

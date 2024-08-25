@@ -1,0 +1,4 @@
+resources:
+  - role.yaml
+  - daemonset.yaml
+  - service.yaml

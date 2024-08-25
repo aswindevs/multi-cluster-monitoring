@@ -1,0 +1,159 @@
+resources:
+  - namespace.yaml
+  - alerts
+  - ingress.yaml
+  - grafana-secret.yaml
+
+helmCharts:
+  - name: prometheus-blackbox-exporter
+    repo: https://prometheus-community.github.io/helm-charts
+    namespace: monitoring-v2
+    releaseName: blackbox-exporter
+    valuesFile: ./configs/blackbox-exporter-config.yaml
+    version: v8.6.1
+
+configMapGenerator:
+  - name: home
+    files:
+      - dashboards/home.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+
+  ### K8s dashboards
+  - name: kubernetes-deployment-overview
+    files:
+      - dashboards/deployment-overview.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/K8S
+
+  - name: kubernetes-pod-overview
+    files:
+      - dashboards/k8s-view-pods.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/K8S
+
+  - name: kubernetes-nodes-overview
+    files:
+      - dashboards/k8s-view-nodes.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/K8S
+
+  - name: kubernetes-namespace-overview
+    files:
+      - dashboards/k8s-view-namespace.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/K8S
+
+  - name: kubernetes-global-overview
+    files:
+      - dashboards/k8s-view-global.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/K8S
+
+  - name: kubernetes-workload-recommendation
+    files:
+      - dashboards/k8s-workload-recommendation.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/K8S
+
+  - name: healthchecks
+    files:
+      - dashboards/health-check.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/HealthCheck
+
+  - name: db-jobs
+    files:
+      - dashboards/jobs-dashboard.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/Db-Jobs
+
+  - name: k8s-view-storage
+    files:
+      - dashboards/k8s-view-storage.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/K8S
+
+  ## NGINX
+
+  - name: nginx-dashboard-1
+    files:
+      - dashboards/nginx-dashboard-1.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/NGINX
+
+  - name: nginx-dashboard-2
+    files:
+      - dashboards/nginx-dashboard-2.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/NGINX
+
+  ## GCP
+
+  - name: gcp-cloudsql
+    files:
+      - dashboards/gcp-cloudsql.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/GCP
+
+  - name: gcp-redis
+    files:
+      - dashboards/gcp-redis.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-dashboard: "1"
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/GCP
+
+

@@ -1,0 +1,152 @@
+fullnameOverride: "victoria-metrics"
+nameOverride: "victoria-metrics"
+namespaceOverride: "monitoring-v2"
+argocdReleaseOverride: "victoria-metrics"
+
+victoria-metrics-operator:
+  enabled: true
+
+defaultRules:
+  create: false
+
+defaultDashboardsEnabled: false
+experimentalDashboardsEnabled: false
+
+vmsingle:
+  enabled: false
+
+vmcluster:
+  enabled: true
+  spec:
+    retentionPeriod: "3"
+    replicationFactor: 2
+    vmstorage:
+      replicaCount: 3
+      resources:
+        limits:
+          memory: 4Gi
+        requests:
+          cpu: "500m"
+          memory: 4Gi
+      storage:
+        volumeClaimTemplate:
+          spec:
+            resources:
+              requests:
+                storage: 200Gi
+    vmselect:
+      replicaCount: 3
+      storage:
+        volumeClaimTemplate:
+          spec:
+            resources:
+              requests:
+                storage: 2Gi
+    vminsert:
+      replicaCount: 3
+      serviceSpec:
+        spec:
+          type: LoadBalancer
+          loadBalancerIP: "10.01.71.219"
+        metadata:
+          annotations:
+            networking.gke.io/load-balancer-type: "Internal"
+            networking.gke.io/internal-load-balancer-allow-global-access: "true"
+
+alertmanager:
+  enabled: false
+
+vmalert:
+  enabled: true
+
+vmagent:
+  enabled: true
+  spec:
+    replicaCount: 3
+    resources:
+      limits:
+        memory: 2Gi
+      requests:
+        cpu: "500m"
+        memory: 2Gi
+    externalLabels:
+      cluster: belgium
+    inlineScrapeConfig: |
+      - job_name: 'kube-api-blackbox'
+        metrics_path: /probe
+        scrape_interval: 5s
+        params:
+          module: [http_2xx]
+        static_configs:
+        - targets:
+            - api-server.ns.svc.cluster.local/v1/health
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: __param_target
+        - source_labels: [__param_target]
+          target_label: instance
+        - target_label: __address__
+          replacement: blackbox-exporter:9115
+    topologySpreadConstraints:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: vmagent
+        maxSkew: 2
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: vmagent
+        maxSkew: 2
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway 
+
+grafana:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+kubelet:
+  enabled: true
+  spec:
+    relabelConfigs:
+      - targetLabel: "cluster"
+        replacement: "cluster-1"
+
+kubeApiServer:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+coreDns:
+  enabled: false
+
+kubeDns:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+additionalVictoriaMetricsMap:
+  rule-name:
+    groups:
+      - name: k8s.rules
+        rules:
+          - expr: |
+              sum by (cluster, namespace, pod, container) (
+                rate(container_cpu_usage_seconds_total{image!="", container!="POD"}[5m])
+              ) * on (cluster, namespace, pod) group_left(node) topk by (cluster, namespace, pod) (
+                1, max by(cluster, namespace, pod, node) (kube_pod_info{node!=""})
+              )
+            record: node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate

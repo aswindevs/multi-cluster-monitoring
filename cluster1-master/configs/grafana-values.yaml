@@ -1,0 +1,7 @@
+grafana.ini:
+  server:
+    root_url: https://grafana.example.com/
+serviceAccount:
+  create: true
+  annotations:
+    iam.gke.io/gcp-service-account: grafana@myorg.iam.gserviceaccount.com

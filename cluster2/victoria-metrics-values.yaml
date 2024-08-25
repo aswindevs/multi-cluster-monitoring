@@ -1,0 +1,90 @@
+fullnameOverride: "victoria-metrics"
+nameOverride: "victoria-metrics"
+namespaceOverride: "monitoring"
+argocdReleaseOverride: "victoria-metrics"
+
+victoria-metrics-operator:
+  enabled: true
+
+defaultRules:
+  create: false
+
+defaultDashboardsEnabled: false
+experimentalDashboardsEnabled: false 
+
+vmsingle:
+  enabled: false 
+
+alertmanager:
+  enabled: false
+
+vmalert:
+  enabled: false
+
+
+vmagent:
+  enabled: true
+  spec:
+    replicaCount: 3
+    resources:
+      limits:
+        memory: 2Gi
+      requests:
+        cpu: "500m"
+        memory: 2Gi
+    externalLabels:
+      cluster: lasvegas
+    remoteWrite:
+      - url: http://master-victoria-metrics-internal-ip:8480/insert/0/prometheus/api/v1/write
+    topologySpreadConstraints:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: vmagent
+        maxSkew: 2
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: vmagent
+        maxSkew: 2
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway   
+
+grafana:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+kubelet:
+  enabled: true
+  spec:
+    relabelConfigs:
+      - targetLabel: "cluster"
+        replacement: "cluster2"
+
+
+kubeApiServer:
+  enabled: false
+
+
+kubeControllerManager:
+  enabled: false
+
+coreDns:
+  enabled: false
+
+kubeDns:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false

@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-alerting
+data:
+  contact-point.yaml: |-
+    apiVersion: 1
+    contactPoints:
+      - orgId: 1
+        name: slack
+        receivers:
+          - uid: slack
+            type: slack
+            settings:
+              username: grafana_alert
+              # icon_url: https://icon_url
+              url: <webhook-url>
+              title: |
+                {{ template "slack.title" . }}
+              text: |
+                {{ template "slack.text" . }}
+            disableResolveMessage: true
+
+ 
+                
+  notification-policy.yaml: |-
+    apiVersion: 1
+    policies:
+      - orgId: 1
+        receiver: grafana-default-email
+        group_by:
+          - '...'
+        routes:
+        - receiver: slack
+          object_matchers:
+          - ["severity" ,"=~" ,  "warning|critical"]
+          - ["namespace", "!=" ,"kube-system"]
+          continue: true
+        - receiver: API_server_Prod
+          object_matchers:
+          - ["instance" ,"=~" ,  "api-server.app.*"]
+          
+        - receiver: ProxySql
+          object_matchers:
+          - ["type" ,"=" ,  "proxy_sql_not_respond"]
+
+
+  template.yaml: |-
+    apiVersion: 1
+    templates:
+      - orgID: 1
+        name: slack
+        template: |-
+          {{ define "alert_severity_prefix_emoji" -}}
+            {{- if ne .Status "firing" -}}
+              :white_check_mark:
+            {{- else if eq .CommonLabels.severity "critical" -}}
+              :red_circle:
+            {{- else if eq .CommonLabels.severity "warning" -}}
+              :warning:
+            {{- end -}}
+          {{- end -}}
+          {{ define "slack.title" -}}
+            {{ template "alert_severity_prefix_emoji" . }} {{ .CommonLabels.alertname }}
+            {{- if gt (len .CommonLabels) (len .GroupLabels) -}}
+              {{" "}}(
+              {{- with .CommonLabels.Remove .GroupLabels.Names }}
+                {{- range $index, $label := .SortedPairs -}}
+                  {{ if $index }}, {{ end }}
+                  {{- $label.Name }}="{{ $label.Value -}}"
+                {{- end }}
+              {{- end -}}
+              )
+            {{- end }}
+          {{- end -}}
+
+          {{- define "slack.text" -}}
+          {{ range .Alerts -}}
+          *Alert:* {{ .Annotations.title }}{{ if .Labels.severity }} - `{{ .Labels.severity }}`{{ end }}
+
+          *Description:* {{ .Annotations.description }}
+
+          *Details:*
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+          {{ end }}
+          {{ if .SilenceURL -}}
+            *Silence*: `{{ .SilenceURL }}``
+          {{ end -}}
+          {{ if .DashboardURL -}}
+            *Go to dashboard*: `{{ .DashboardURL }}`
+          {{- end }}
+          {{ end }}

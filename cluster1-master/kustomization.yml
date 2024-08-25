@@ -1,0 +1,48 @@
+namespace: monitoring-v2
+resources:
+  - ../../base/
+  - ../monitoring-ingress.yaml
+  - configs/grafana-alerts-template.yaml
+
+helmCharts:
+  - name: grafana
+    repo: https://grafana.github.io/helm-charts
+    namespace: monitoring-v2
+    releaseName: grafana
+    valuesFile: ../../base/configs/grafana-config.yaml
+    version: "v7.3.11"
+    additionalValuesFiles:
+      - configs/grafana-values.yaml
+
+  - name: victoria-metrics-k8s-stack
+    repo: https://victoriametrics.github.io/helm-charts/
+    namespace: monitoring-v2
+    releaseName: victoria-metrics
+    includeCRDs: true
+    valuesFile: configs/victoria-metrics.yaml
+    version: "0.22.1"
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/data/0/remoteRef/key
+        value: example-prometheus-sql-exporter-config
+    target:
+      kind: ExternalSecret
+      name: prometheus-sql-exporter-config
+  - patch: |-
+      - op: replace
+        path: /spec/dataFrom/0/extract/key
+        value: example-grafana-secret
+    target:
+      kind: ExternalSecret
+      name: grafana-secret
+
+configMapGenerator:
+  - name: gcp-alerts-rules
+    files:
+      - configs/gcp-alerts.yaml
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-alert: "1"

@@ -1,0 +1,58 @@
+ configMapGenerator:
+  # ALerts
+
+  - name: container-rules
+    files:
+    - container.yaml
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-alert: "1"
+      
+  - name: db-jobs-rules
+    files:
+    - db-jobs.yaml
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-alert: "1"
+
+  - name: healthcheck-rules
+    files:
+    - healthcheck.yaml
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-alert: "1"
+
+  - name: kubestate-rules
+    files:
+    - kubestate.yaml
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-alert: "1"
+
+  - name: node-rules
+    files:
+    - node.yaml
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-alert: "1"
+
+  - name: proxysql-rules
+    files:
+    - proxysql.yaml
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-alert: "1"
+
+  - name: soketi-rules
+    files:
+    - soketi.yaml
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana-alert: "1"

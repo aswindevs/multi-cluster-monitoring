@@ -1,0 +1,19 @@
+namespace: monitoring
+
+resources:
+  - ../../base/proxy_db.yaml
+
+helmCharts:
+- name: victoria-metrics-k8s-stack
+  repo: https://victoriametrics.github.io/helm-charts/
+  namespace: monitoring
+  releaseName: victoria-metrics
+  includeCRDs: true
+  valuesFile: victoria-metrics-values.yaml
+
+- name: prometheus-blackbox-exporter
+  repo: https://prometheus-community.github.io/helm-charts
+  namespace: monitoring
+  releaseName: blackbox-exporter
+  valuesFile: ../../base/configs/blackbox-exporter-config.yaml
+  version: v8.6.1

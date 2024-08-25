@@ -1,0 +1,43 @@
+restartPolicy: Always
+
+kind: Deployment
+
+namespaceOverride: "monitoring"
+
+livenessProbe:
+  httpGet:
+    path: /-/healthy
+    port: http
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /-/healthy
+    port: http
+
+secretConfig: false
+config:
+  modules:
+    http_2xx:
+      prober: http
+      timeout: 5s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        follow_redirects: true
+        preferred_ip_protocol: "ip4"
+
+replicas: 3
+
+topologySpreadConstraints:
+  - labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: prometheus-blackbox-exporter
+    maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+  - labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: prometheus-blackbox-exporter
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway

@@ -1,0 +1,185 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Db-Jobs
+    folder: Db-Jobs
+    interval: 10s
+    rules:
+      - uid: f30a3679-802c-4a98-a555
+        title: ManyFails
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: d3ccf2e1-d9f5-4838-a36c-8cc583faa6b7
+            model:
+              editorMode: code
+              expr: sum by (type_id)(sql_jobs_by_type_and_status{status_id="3"}) == sum by (type_id)(sql_jobs_by_type_and_status) and sum by (type_id)(sql_jobs_by_type_and_status{status_id="3"}) > 0
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: bb02a256-ea61-4821-af86-9961df8187ca
+        panelId: 1
+        noDataState: OK
+        execErrState: OK
+        for: 30m
+        annotations:
+          __dashboardUid__: bb02a256-ea61-4821-af86-9961df8187ca
+          __panelId__: "1"
+          description: All jobs of type {{ $labels.type_id }} failed in 30 mins
+          runbook_url: ""
+          summary: Jobs with type {{ $labels.type_id }} are failing
+        labels:
+          "": ""
+          severity: critical
+        isPaused: false
+      - uid: f30a3679-802c-4a98-sdf
+        title: JobsProcessingStuck
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: d3ccf2e1-d9f5-4838-a36c-8cc583faa6b7
+            model:
+              editorMode: code
+              expr: sum by (type_id)(sql_jobs_by_type_and_status{status_id="1"}) == sum by (type_id)(sql_jobs_by_type_and_status) and sum by (type_id)(sql_jobs_by_type_and_status{status_id="1"}) > 0
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        dashboardUid: bb02a256-ea61-4821-af86-9961df8187ca
+        panelId: 1
+        noDataState: OK
+        execErrState: OK
+        for: 30m
+        annotations:
+          __dashboardUid__: bb02a256-ea61-4821-af86-9961df8187ca
+          __panelId__: "1"
+          description: Some jobs of type {{ $labels.type_id }} is pending processing or processing for more than 30 mins
+          runbook_url: ""
+          summary: Jobs with type {{ $labels.type_id }} stuck fro 30 mins.
+        labels:
+          "": ""
+          severity: critical
+        isPaused: false
